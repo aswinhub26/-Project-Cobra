@@ -1,6 +1,8 @@
 const fs = require("fs")
 const path = require("path")
 
+console.log("\n🐍 Project Cobra Booting...\n")
+
 // cooldown storage
 const cooldowns = {}
 
@@ -12,13 +14,42 @@ const analytics = {
     startTime: Date.now()
 }
 
+const commands = {}
+
+const commandsPath = path.join(__dirname, "commands")
+const pluginsPath = path.join(__dirname, "plugins")
+
+const commandFiles = fs.readdirSync(commandsPath)
+const pluginFiles = fs.existsSync(pluginsPath) ? fs.readdirSync(pluginsPath) : []
+
+console.log("⚡ Loading Commands...\n")
+
+for (const file of commandFiles) {
+
+    const command = require(`./commands/${file}`)
+
+    commands[command.name] = command
+
+    console.log(`✔ ${command.name}`)
+}
+
+console.log("\n🔌 Loading Plugins...\n")
+
+for (const file of pluginFiles) {
+
+    const plugin = require(`./plugins/${file}`)
+
+    commands[plugin.name] = plugin
+
+    console.log(`✔ ${plugin.name}`)
+}
+
+console.log("\n🚀 Cobra Ready\n")
+
 function handleCommand(commandName, userName, targetName) {
 
     const dbPath = path.join(__dirname, "database", "users.json")
     const logPath = path.join(__dirname, "logs", "commands.log")
-
-    const commandsPath = path.join(__dirname, "commands")
-    const pluginsPath = path.join(__dirname, "plugins")
 
     const data = JSON.parse(fs.readFileSync(dbPath))
 
@@ -32,50 +63,39 @@ function handleCommand(commandName, userName, targetName) {
     const now = Date.now()
 
     if (cooldowns[userName] && now - cooldowns[userName] < cooldownTime) {
+
         const remaining = ((cooldownTime - (now - cooldowns[userName])) / 1000).toFixed(1)
+
         return `⏳ Please wait ${remaining}s before using another command`
     }
 
     cooldowns[userName] = now
 
-    // read command files
-    const commandFiles = fs.readdirSync(commandsPath)
+    const command = commands[commandName]
 
-    // read plugin files (if folder exists)
-    const pluginFiles = fs.existsSync(pluginsPath)
-        ? fs.readdirSync(pluginsPath)
-        : []
+    if (!command) return "❌ Command not found"
 
-    // merge commands + plugins
-    const files = [
-        ...commandFiles.map(f => `commands/${f}`),
-        ...pluginFiles.map(f => `plugins/${f}`)
-    ]
+    try {
 
-    for (const file of files) {
+        analytics.totalCommands++
 
-        const command = require(`./${file}`)
+        analytics.commandUsage[commandName] =
+            (analytics.commandUsage[commandName] || 0) + 1
 
-        if (command.name === commandName) {
+        analytics.userUsage[userName] =
+            (analytics.userUsage[userName] || 0) + 1
 
-            // update analytics
-            analytics.totalCommands++
+        const log = `[${new Date().toLocaleString()}] ${userName} used .${commandName}\n`
+        fs.appendFileSync(logPath, log)
 
-            analytics.commandUsage[commandName] =
-                (analytics.commandUsage[commandName] || 0) + 1
+        return command.execute(user, targetName, data, dbPath, analytics)
 
-            analytics.userUsage[userName] =
-                (analytics.userUsage[userName] || 0) + 1
+    } catch (err) {
 
-            // log command
-            const log = `[${new Date().toLocaleString()}] ${userName} used .${commandName}\n`
-            fs.appendFileSync(logPath, log)
+        console.error("Command Error:", err)
 
-            return command.execute(user, targetName, data, dbPath, analytics)
-        }
+        return "⚠ Error executing command"
     }
-
-    return "❌ Command not found"
 }
 
 module.exports = handleCommand
