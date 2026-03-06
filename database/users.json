@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "name": "Aswin",
+      "role": "owner",
+      "banned": false
+    },
+    {
+      "name": "Admin",
+      "role": "admin",
+      "banned": false
+    },
+    {
+      "name": "John",
+      "role": "user",
+      "banned": false
+    }
+  ]
+}
