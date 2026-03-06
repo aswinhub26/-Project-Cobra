@@ -18,7 +18,7 @@ Project Cobra demonstrates backend architecture used in **chatbot frameworks, au
 ---
 
 ## ⚙️ Commands
-.ping → Check if Cobra is alive
+.ping → Check if Cobra is alive       
 .menu → Show command menu
 .about → Bot information
 .kick → Kick a user (Admin/Owner)
@@ -58,6 +58,15 @@ Project Cobra
 3️⃣ Command handler loads module dynamically  
 4️⃣ Role permissions are checked  
 5️⃣ Command executes and logs activity  
+![Uploading WORKING OF BOT.png…]()
+
+
+📱 WhatsApp Bot Demo
+
+.ping → 🐍 Project Cobra is Alive!
+<img width="876" height="589" alt="WORKING OF BOT" src="https://github.com/user-attachments/assets/e3717a47-23ce-4d4c-8731-575a2de5de54" />
+
+
 
 ---
 
