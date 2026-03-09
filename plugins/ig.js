@@ -1,38 +1,44 @@
 const ytdlp = require("yt-dlp-exec")
+const fs = require("fs")
+const path = require("path")
 
 module.exports = {
-    name: "ig",
+name: "ig",
 
-    async execute(user, url) {
+async execute(user, link, data, dbPath, analytics, sock, msg) {
 
-        if (!url) {
-            return `📸 *Instagram Downloader*
+try {
 
-Usage:
-.ig instagram_link
+if (!link) {
+return "📥 Example:\n.ig https://instagram.com/reel/xxxx"
+}
 
-Example:
-.ig https://www.instagram.com/reel/xxxx`
-        }
+await sock.sendMessage(msg.key.remoteJid, {
+text: "📥 Downloading Instagram video..."
+})
 
-        try {
+const filePath = path.join(__dirname, "../temp/ig.mp4")
 
-            const info = await ytdlp(url, {
-                dumpSingleJson: true
-            })
+await ytdlp(link, {
+output: filePath
+})
 
-            const video = info.url
+await sock.sendMessage(msg.key.remoteJid, {
+video: fs.readFileSync(filePath),
+caption: "📥 Instagram video downloaded"
+}, { quoted: msg })
 
-            return {
-                video: { url: video },
-                caption: "📥 Instagram Reel Downloaded 🐍"
-            }
+fs.unlinkSync(filePath)
 
-        } catch (err) {
+return null
 
-            console.log("IG ERROR:", err.message)
+} catch (err) {
 
-            return "⚠ Failed to download Instagram video"
-        }
-    }
+console.log("IG ERROR:", err)
+
+return "⚠ Instagram download failed"
+
+}
+
+}
 }
