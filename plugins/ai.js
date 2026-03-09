@@ -1,56 +1,46 @@
-require("dotenv").config()
-
 const Groq = require("groq-sdk")
 
-// check API key
-if (!process.env.GROQ_API_KEY) {
-
-module.exports = {
-    name: "ask",
-
-    async execute() {
-        return "⚠ GROQ_API_KEY missing in .env"
-    }
-}
-
-return
-}
-
 const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
+  apiKey: process.env.GROQ_API_KEY
 })
 
 module.exports = {
+name: "ai",
 
-name: "ask",
+async execute(user, query, data, dbPath, analytics, sock, msg) {
 
-async execute(user, question) {
+try {
 
-    if (!question) {
-        return "❌ Ask something.\nExample: .ask what is cybersecurity"
-    }
+if (!query) {
+return "🤖 Example:\n.ai explain cybersecurity"
+}
 
-    try {
+await sock.sendMessage(msg.key.remoteJid, {
+react: { text: "🧠", key: msg.key }
+})
 
-        const response = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: "user",
-                    content: question
-                }
-            ],
-            model: "llama-3.1-8b-instant"
-        })
+const completion = await groq.chat.completions.create({
+messages: [
+{ role: "user", content: query }
+],
+model: "llama-3.1-8b-instant"
+})
 
-        return response.choices[0].message.content
+const answer = completion.choices[0].message.content
 
-    } catch (error) {
+await sock.sendMessage(msg.key.remoteJid, {
+text: answer
+}, { quoted: msg })
 
-        console.log("AI ERROR:", error)
+return null
 
-        return "⚠ AI service error"
-    }
+} catch (err) {
+
+console.log("AI ERROR:", err)
+
+return "❌ AI service error"
 
 }
 
+}
 }

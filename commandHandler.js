@@ -50,7 +50,7 @@ for (const file of pluginFiles) {
 
 console.log("\n🚀 Cobra Ready for Commands 🐍\n")
 
-async function handleCommand(commandName, userName, targetName) {
+async function handleCommand(commandName, userName, targetName, sock, msg) {
 
     const dbPath = path.join(__dirname, "database", "users.json")
     const logPath = path.join(__dirname, "logs", "commands.log")

@@ -1,58 +1,68 @@
 const yts = require("yt-search")
-const axios = require("axios")
+const ytdlp = require("yt-dlp-exec")
+const fs = require("fs")
+const path = require("path")
 
 module.exports = {
-
 name: "play",
 
 async execute(user, query, data, dbPath, analytics, sock, msg) {
 
-    try {
+try {
 
-        if (!query) {
-            return "🎵 What song do you want to download?\nExample: .play shape of you"
-        }
+if (!query) {
+return "🎵 Example: .play believer"
+}
 
-        const { videos } = await yts(query)
+const search = await yts(query)
 
-        if (!videos || videos.length === 0) {
-            return "❌ No songs found"
-        }
+if (!search.videos.length) {
+return "❌ Song not found"
+}
 
-        const video = videos[0]
-        const urlYt = video.url
+const video = search.videos[0]
 
-        await sock.sendMessage(msg.key.remoteJid, {
-            text: "⏳ Please wait, downloading your song..."
-        })
+const title = video.title
+const duration = video.timestamp
+const thumbnail = video.thumbnail
 
-        const response = await axios.get(
-            `https://apis-keith.vercel.app/download/dlmp3?url=${urlYt}`
-        )
+// preview message with thumbnail
+await sock.sendMessage(msg.key.remoteJid, {
+image: { url: thumbnail },
+caption:
+`🎵 Downloading: *${title}*\n\n` +
+`⏱ Duration: ${duration}`
+})
 
-        const dataApi = response.data
+// file path
+const filePath = path.join(__dirname, "../temp/song.mp3")
 
-        if (!dataApi?.status || !dataApi?.result?.downloadUrl) {
-            return "❌ Failed to fetch audio"
-        }
+// download audio
+await ytdlp(video.url, {
+  extractAudio: true,
+  audioFormat: "mp3",
+  ffmpegLocation: "C:/Users/aswin/Desktop/ffmpeg-8.0.1-essentials_build/bin",
+  output: filePath
+})
 
-        const audioUrl = dataApi.result.downloadUrl
-        const title = dataApi.result.title
+// send audio
+await sock.sendMessage(msg.key.remoteJid, {
+audio: fs.readFileSync(filePath),
+mimetype: "audio/mpeg",
+fileName: title + ".mp3"
+})
 
-        await sock.sendMessage(msg.key.remoteJid, {
-            audio: { url: audioUrl },
-            mimetype: "audio/mpeg",
-            fileName: title + ".mp3"
-        })
+fs.unlinkSync(filePath)
 
-        return null
+return null
 
-    } catch (error) {
+} catch (err) {
 
-        console.error("Play command error:", error)
+console.log("PLAY ERROR:", err)
 
-        return "⚠ Download failed"
-    }
+return "⚠ Failed to download song"
+
+}
 
 }
 }
