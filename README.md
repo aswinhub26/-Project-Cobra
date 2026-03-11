@@ -1,51 +1,44 @@
-🐍 Project Cobra
+🐍 𝙋𝙧𝙤𝙟𝙚𝙘𝙩 𝘾𝙤𝙗𝙧𝙖
 
 
+Project Cobra is a modular WhatsApp automation engine built using Node.js and Baileys.
 
+It demonstrates how modern chatbot frameworks, automation engines, and bot platforms are designed using command-driven architecture and plugin-based modules.
 
-
-
-
-
-
-
-Project Cobra is a modular WhatsApp automation engine built with Node.js and Baileys.
-
-It demonstrates how modern chatbot frameworks and automation systems are designed using command-driven architecture and plugin-based modules.
-
-Project Cobra is built to simulate real-world backend systems used in chatbot platforms, automation tools, and bot frameworks.
+This project simulates real-world backend systems used in chatbots, automation tools, and messaging bots.
 
 🚀 Features
 ⚙ Core System
 
-Modular command architecture
+🧩 Modular command architecture
 
-Dynamic plugin loader
+🔌 Dynamic plugin loader
 
-Command cooldown system
+⏳ Command cooldown system
 
-Command analytics tracking
+📊 Command analytics tracking
 
-JSON database user management
+🗂 JSON database user management
 
-Command logging system
+📝 Command logging system
 
-Real-time WhatsApp automation
+⚡ Real-time WhatsApp automation
 
 👑 Role-Based Permissions
 
-Project Cobra includes access control levels:
+Project Cobra includes multi-level access control.
 
-Role	Permissions
-Owner	Full control
-Admin	Moderation commands
-User	Standard bot commands
+Role	Access
+👑 Owner	Full bot control
+🛡 Admin	Moderation commands
+👤 User	Standard bot commands
 🔌 Plugin System
 
-Cobra supports dynamic plugin loading, allowing commands to be added easily without modifying the core engine.
+Project Cobra supports dynamic plugins, allowing commands to be added without modifying the core engine.
 
-Example plugin commands:
+All plugins are automatically loaded from the plugins folder.
 
+Example Plugin Commands
 .ai
 .video
 .play
@@ -54,28 +47,29 @@ Example plugin commands:
 .translate
 .ig
 .viewonce
-
-Plugins are loaded automatically from the plugins folder.
-
 ⚙️ Commands
-Core Commands
-.ping      → Check if Cobra is alive
-.menu      → Show command menu
-.about     → Bot information
-.stats     → Bot analytics
-Moderation Commands
-.kick      → Kick a user (Admin / Owner)
-.ban       → Ban a user (Owner)
-Media & Utility Commands
-.play       → Download music from YouTube
-.video      → Download YouTube videos
-.gif        → Search GIFs
-.weather    → Get weather information
-.translate  → Translate text
-AI & Automation Commands
-.ai         → AI chatbot interaction
-.ig         → Download Instagram media
-.viewonce   → Reveal view-once media
+🧠 Core Commands
+Command	Description
+.ping	Check if bot is alive
+.menu	Display command dashboard
+.about	Bot information
+.stats	Bot analytics
+🛡 Moderation Commands
+Command	Permission
+.kick	Admin / Owner
+.ban	Owner only
+🎵 Media & Utility Commands
+Command	Description
+.play	Download music from YouTube
+.video	Download YouTube videos
+.gif	Search GIFs
+.weather	Get weather info
+.translate	Translate text
+🤖 AI & Automation Commands
+Command	Description
+.ai	AI chatbot interaction
+.ig	Download Instagram media
+.viewonce	Reveal view-once media
 🏗 Project Architecture
 Project Cobra
 │
@@ -111,26 +105,23 @@ Project Cobra
 🧠 How Cobra Works
 
 1️⃣ User sends a command in WhatsApp
+
 2️⃣ Prefix system validates the command
-3️⃣ Command handler dynamically loads module
+
+3️⃣ Command handler dynamically loads the module
+
 4️⃣ Role permissions are verified
+
 5️⃣ Plugin executes logic
+
 6️⃣ Command usage is logged and tracked
 
 📱 WhatsApp Bot Demo
-
-Example command:
-
+Example Command
 .ping
-
-Response:
-
+Response
 🐍 Project Cobra is Alive!
-
-
-
-Example menu:
-
+Example Menu
 .menu
 
 Displays the full command dashboard.
@@ -141,7 +132,7 @@ git clone https://github.com/yourusername/project-cobra.git
 cd project-cobra
 2️⃣ Install Dependencies
 npm install
-3️⃣ Start Bot
+3️⃣ Start the Bot
 node whatsapp.js
 
 Scan the QR code using WhatsApp.
@@ -150,34 +141,38 @@ Scan the QR code using WhatsApp.
 
 🌐 Express REST API integration
 
-📊 Advanced command analytics dashboard
+📊 Advanced analytics dashboard
 
 🗄 MongoDB database support
 
 🤖 Telegram / Discord integration
 
-🧠 AI automation improvements
+🧠 Improved AI automation
 
-⚡ distributed bot architecture
+⚡ Distributed bot architecture
 
 🤝 Contributing
 
 Contributions are welcome!
 
-If you'd like to improve Project Cobra:
+Steps:
 
-Fork the repository
-
-Create a new branch
-
-Submit a Pull Request
+1️⃣ Fork the repository
+2️⃣ Create a new branch
+3️⃣ Submit a Pull Request
 
 👨‍💻 Author
 
 Aswin D
 
-Project Cobra was built as a learning project to explore bot frameworks, automation systems, and scalable backend architecture.
+Project Cobra was built as a learning project to explore:
 
-It demonstrates how real chatbot platforms and automation engines work internally.
+chatbot frameworks
+
+automation systems
+
+scalable backend architectures
+
+It demonstrates how real bot platforms and automation engines work internally.
 
 ⭐ If you like this project, consider starring the repository.
