@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const fs = require("fs");
 const path = require("path");
 const {
     default: makeWASocket,
@@ -13,13 +14,19 @@ const pino = require("pino");
 const handleCommand = require("./commandHandler");
 const settings = require("./settings");
 
+let bannerSent = false;
+
 async function sendConnectedBanner(sock) {
     try {
         const ownerJid = `${settings.owner[0]}@s.whatsapp.net`;
-        const imagePath = path.join(__dirname, "assets", "cobra.png");
+        const imagePath = path.join(__dirname, "assets", "cobra.jpg");
 
-        const caption = `
-╔══════════════════════════════╗
+        if (!fs.existsSync(imagePath)) {
+            console.log("❌ Banner image not found:", imagePath);
+            return;
+        }
+
+        const caption = `╔══════════════════════════════╗
         🐍 PROJECT COBRA
 ╚══════════════════════════════╝
 
@@ -47,11 +54,11 @@ Your bot is now connected to WhatsApp.
 
 📌 Type *.menu* to view all commands
 
-🐍 *Project Cobra is ready to serve you.*
-`;
+🐍 *Project Cobra is ready to serve you.*`;
 
         await sock.sendMessage(ownerJid, {
-            image: { url: imagePath },
+            image: fs.readFileSync(imagePath),
+            mimetype: "image/jpeg",
             caption
         });
 
@@ -83,8 +90,12 @@ async function startBot() {
         if (connection === "open") {
             console.log("🐍 Project Cobra connected to WhatsApp!");
 
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            await sendConnectedBanner(sock);
+            if (!bannerSent) {
+                bannerSent = true;
+                sendConnectedBanner(sock).catch((err) =>
+                    console.log("❌ Banner background error:", err)
+                );
+            }
         }
 
         if (connection === "close") {
@@ -102,33 +113,40 @@ async function startBot() {
     sock.ev.on("creds.update", saveCreds);
 
     sock.ev.on("messages.upsert", async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg?.message) return;
-
-        const text =
-            msg.message.conversation ||
-            msg.message.extendedTextMessage?.text;
-
-        if (!text) return;
-
-        console.log("Message received:", text);
-
-        if (!text.startsWith(".")) return;
-
-        const parts = text.slice(1).trim().split(/\s+/);
-        const commandName = parts[0];
-        const args = parts.slice(1).join(" ");
-        const sender = msg.pushName || "User";
-
         try {
+            const msg = messages[0];
+            if (!msg?.message) return;
+
+            const text =
+                msg.message.conversation ||
+                msg.message.extendedTextMessage?.text;
+
+            if (!text) return;
+
+            const isFromMe = msg.key.fromMe;
+
+            // Ignore own normal messages, but allow own commands like .menu / .sticker
+            if (isFromMe && !text.startsWith(".")) return;
+
+            console.log("Message received:", text);
+
+            if (!text.startsWith(".")) return;
+
+            const parts = text.slice(1).trim().split(/\s+/);
+            const commandName = parts[0].toLowerCase();
+            const args = parts.slice(1).join(" ");
+            const sender = msg.pushName || "User";
+
             const response = await handleCommand(sock, msg, commandName, sender, args);
 
             if (!response) return;
 
             if (typeof response === "object" && response.file) {
-                await sock.sendMessage(msg.key.remoteJid, {
-                    text: response.text || "📥 Download complete"
-                });
+                if (response.text) {
+                    await sock.sendMessage(msg.key.remoteJid, {
+                        text: response.text
+                    });
+                }
 
                 await sock.sendMessage(msg.key.remoteJid, {
                     video: { url: response.file },
@@ -144,9 +162,13 @@ async function startBot() {
         } catch (err) {
             console.log("Command error:", err);
 
-            await sock.sendMessage(msg.key.remoteJid, {
-                text: "⚠ Command failed"
-            });
+            try {
+                await sock.sendMessage(messages[0].key.remoteJid, {
+                    text: "⚠ Command failed"
+                });
+            } catch (sendErr) {
+                console.log("Reply send error:", sendErr);
+            }
         }
     });
 }
