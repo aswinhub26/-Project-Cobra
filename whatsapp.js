@@ -1,119 +1,154 @@
-require("dotenv").config()
+require("dotenv").config();
 
+const path = require("path");
 const {
     default: makeWASocket,
     useMultiFileAuthState,
     fetchLatestBaileysVersion,
     DisconnectReason
-} = require("@whiskeysockets/baileys")
+} = require("@whiskeysockets/baileys");
 
-const qrcode = require("qrcode-terminal")
-const pino = require("pino")
-const handleCommand = require("./commandHandler")
+const qrcode = require("qrcode-terminal");
+const pino = require("pino");
+const handleCommand = require("./commandHandler");
+const settings = require("./settings");
+
+async function sendConnectedBanner(sock) {
+    try {
+        const ownerJid = `${settings.owner[0]}@s.whatsapp.net`;
+        const imagePath = path.join(__dirname, "assets", "cobra.png");
+
+        const caption = `
+╔══════════════════════════════╗
+        🐍 PROJECT COBRA
+╚══════════════════════════════╝
+
+✅ *Cobra Connected Successfully*
+⚡ *Bot is now online and active*
+
+👋 Hello *${settings.ownerName}*
+Your bot is now connected to WhatsApp.
+
+🚀 *System Status*
+• Bot Name: ${settings.botName}
+• Version: ${settings.version}
+• Mode: ${settings.mode}
+• Connection: Active
+
+🔥 *Loaded Features*
+• 🤖 AI Assistant
+• 🎥 Video Downloader
+• 🎵 Music Downloader
+• 📸 Instagram Downloader
+• 🌍 Translator
+• 🌤 Weather
+• 🖼 Sticker Maker
+• 😂 GIF Search
+
+📌 Type *.menu* to view all commands
+
+🐍 *Project Cobra is ready to serve you.*
+`;
+
+        await sock.sendMessage(ownerJid, {
+            image: { url: imagePath },
+            caption
+        });
+
+        console.log("📢 Cobra banner sent successfully");
+    } catch (err) {
+        console.log("❌ Banner error:", err);
+    }
+}
 
 async function startBot() {
-
-    const { state, saveCreds } = await useMultiFileAuthState("auth")
-    const { version } = await fetchLatestBaileysVersion()
+    const { state, saveCreds } = await useMultiFileAuthState("auth");
+    const { version } = await fetchLatestBaileysVersion();
 
     const sock = makeWASocket({
         version,
         auth: state,
         logger: pino({ level: "silent" }),
         browser: ["Project Cobra", "Chrome", "1.0"]
-    })
+    });
 
-    sock.ev.on("connection.update", (update) => {
-
-        const { connection, lastDisconnect, qr } = update
+    sock.ev.on("connection.update", async (update) => {
+        const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
-            console.log("\n📱 Scan this QR with WhatsApp\n")
-            qrcode.generate(qr, { small: true })
+            console.log("\n📱 Scan this QR with WhatsApp\n");
+            qrcode.generate(qr, { small: true });
         }
 
         if (connection === "open") {
-            console.log("🐍 Project Cobra connected to WhatsApp!")
+            console.log("🐍 Project Cobra connected to WhatsApp!");
+
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await sendConnectedBanner(sock);
         }
 
         if (connection === "close") {
-
             const shouldReconnect =
-                lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+                lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
 
-            console.log("⚠ Connection closed. Reconnecting:", shouldReconnect)
+            console.log("⚠ Connection closed. Reconnecting:", shouldReconnect);
 
             if (shouldReconnect) {
-                startBot()
+                startBot();
             }
         }
+    });
 
-    })
-
-    sock.ev.on("creds.update", saveCreds)
+    sock.ev.on("creds.update", saveCreds);
 
     sock.ev.on("messages.upsert", async ({ messages }) => {
-
-        const msg = messages[0]
-
-        if (!msg.message) return
+        const msg = messages[0];
+        if (!msg?.message) return;
 
         const text =
             msg.message.conversation ||
-            msg.message.extendedTextMessage?.text
+            msg.message.extendedTextMessage?.text;
 
-        if (!text) return
+        if (!text) return;
 
-        console.log("Message received:", text)
+        console.log("Message received:", text);
 
-        // ignore non-command messages
-        if (!text.startsWith(".")) return
+        if (!text.startsWith(".")) return;
 
-        const parts = text.slice(1).trim().split(/\s+/)
-        const commandName = parts[0]
-        const args = parts.slice(1).join(" ")
-
-        const sender = msg.pushName || "User"
+        const parts = text.slice(1).trim().split(/\s+/);
+        const commandName = parts[0];
+        const args = parts.slice(1).join(" ");
+        const sender = msg.pushName || "User";
 
         try {
+            const response = await handleCommand(sock, msg, commandName, sender, args);
 
-           const response = await handleCommand(sock, msg, commandName, sender, args)
+            if (!response) return;
 
-            if (!response) return
-
-            // MEDIA RESPONSE (VIDEO FILE)
             if (typeof response === "object" && response.file) {
-
                 await sock.sendMessage(msg.key.remoteJid, {
-                    text: response.text
-                })
+                    text: response.text || "📥 Download complete"
+                });
 
                 await sock.sendMessage(msg.key.remoteJid, {
                     video: { url: response.file },
                     caption: "📥 Downloaded by Cobra"
-                })
+                });
 
-                return
+                return;
             }
-  
 
-            // NORMAL TEXT RESPONSE
             await sock.sendMessage(msg.key.remoteJid, {
                 text: String(response)
-            })
-
+            });
         } catch (err) {
-
-            console.log("Command error:", err)
+            console.log("Command error:", err);
 
             await sock.sendMessage(msg.key.remoteJid, {
                 text: "⚠ Command failed"
-            })
-
+            });
         }
-
-    })
-
+    });
 }
 
-startBot()
+startBot();
