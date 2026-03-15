@@ -52,6 +52,7 @@ All plugins are automatically loaded from the **plugins folder**.
 .simplify
 .ig
 .viewonce
+.removebg
 
 
 ---
@@ -98,6 +99,9 @@ All plugins are automatically loaded from the **plugins folder**.
 | `.ai` | AI chatbot interaction |
 | `.ig` | Download Instagram media |
 | `.viewonce` | Reveal view-once media |
+| `.removebg` | Remove image background (reply to photo) |
+
+> ℹ️ `.removebg` works with free fallbacks. For best reliability/speed, set `REMOVEBG_API_KEY` in `.env`.
 
 ---
 
