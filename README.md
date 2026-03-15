@@ -101,6 +101,7 @@ All plugins are automatically loaded from the **plugins folder**.
 | `.viewonce` | Reveal view-once media |
 | `.removebg` | Remove image background (reply to photo) |
 
+
 ---
 
 # 🏗 Project Architecture
